@@ -4,6 +4,12 @@ const app = express();
 const PORT = 8000;
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  next();
+});
 
 // app.get("/test", (req, res) => {
 //   res.send("Hello Express");
@@ -11,7 +17,7 @@ app.use(express.json());
 
 //ユーザー情報をすべて取得する
 app.get("/users", (req, res) => {
-  pool.query("select * from users", (error, results) => {
+  pool.query("select * from users order by ID asc", (error, results) => {
     if (error) {
       throw error;
     }
@@ -93,7 +99,9 @@ app.delete("/users/:id", (req, res) => {
 //ユーザーを更新する
 app.put("/users/:id", (req, res) => {
   const id = req.params.id;
+  const email = req.body.email;
   const name = req.body.name;
+  const age = req.body.age;
 
   // IDがすでに存在しているか確認;
   pool.query("select 1 from users where ID = $1", [id], (error, results) => {
@@ -106,8 +114,8 @@ app.put("/users/:id", (req, res) => {
       res.send("ユーザーが存在しません");
     } else {
       pool.query(
-        "update users set name = $1 where ID = $2",
-        [name, id],
+        "update users set email = $1, name = $2, age = $3 where ID = $4",
+        [email, name, age, id],
         (error, results) => {
           if (error) {
             throw error;
